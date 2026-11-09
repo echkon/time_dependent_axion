@@ -36,7 +36,6 @@ import numpy as np
 
 from source.paths import data_path, figs_path
 from source import paper_style as ps
-from source.dephasing import sigma_z_factor
 
 SHOW_INSET = True
 
@@ -105,14 +104,11 @@ if __name__ == "__main__":
 
         # ---- (b) projected sensitivity vs time ----------------------
         ax2 = axes[1]
-        # sigma_z (energy-basis) dephasing implied by T = T2: the stored
-        # sigma_g neglects it, so divide by sqrt(R) point by point in t.
-        rz = np.array([sigma_z_factor(N, x) for x in t], dtype=float)
         for key, c, mk, ls, lab in [
                 ("sigma_g_full", ps.C_TR, ps.M_TR, ps.LS_TR, r"$Q_g^{\rm tr}$"),
                 ("sigma_g_ensemble", ps.C_ENS, ps.M_ENS, ps.LS_ENS, r"$Q_g^{\rm ens}$"),
                 ("sigma_g_cfi_fixed", ps.C_CFI, ps.M_CFI, ps.LS_CFI, r"$F_g$")]:
-            y = np.array(fld[key], dtype=float) / g_true / np.sqrt(rz)
+            y = np.array(fld[key], dtype=float) / g_true
             ax2.plot(t, y, marker=mk, ls=ls, color=c, label=lab, mfc="none",
                      mew=1.2, markevery=2)
         ax2.axhline(1.0, color="black", ls="--", lw=0.8, zorder=4)

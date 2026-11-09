@@ -32,7 +32,6 @@ import numpy as np
 
 from source.paths import data_path, figs_path
 from source import paper_style as ps
-from source.dephasing import sigma_z_factor
 
 if __name__ == "__main__":
     # SINGLE-COLUMN figure: main.tex loads it with the ordinary `figure`
@@ -70,10 +69,7 @@ if __name__ == "__main__":
     # ---- (a) sigma_g vs N -------------------------------------------
     ax = axes[0]
     for i, gT in enumerate(gTs):
-        # sigma_z (energy-basis) dephasing implied by T = T2, on top of the
-        # sigma_x channel that gamma*T parameterises.
-        rz_a = np.array([sigma_z_factor(int(n)) for n in N], dtype=float)
-        y = np.array(res["panel_a"][str(gT)], dtype=float) / g_at_fix / np.sqrt(rz_a)
+        y = np.array(res["panel_a"][str(gT)], dtype=float) / g_at_fix
         lab = rf"$\gamma T={gT:g}$"
         ax.plot(N, y, ls=ps.n_linestyle(i), color=colors[i], lw=1.5, label=lab)
         # circle at the LOCATED minimum of the curve, not at N_c: N_c solves
@@ -106,7 +102,7 @@ if __name__ == "__main__":
     ax2.plot(masses, g_ksvz, "-", color="0.15", lw=1.3, label="KSVZ")
     ax2.plot(masses, g_dfsz, "--", color="0.15", lw=1.3, label="DFSZ")
     for i, gT in enumerate(gTs):
-        y = np.array(res["panel_b"][str(gT)], dtype=float) / np.sqrt(sigma_z_factor(res["N_fixed"]))
+        y = np.array(res["panel_b"][str(gT)], dtype=float)
         lab = rf"$\gamma T={gT:g}$"
         ax2.plot(masses, y, ls=ps.n_linestyle(i), color=colors[i],
                  lw=1.5, label=lab)

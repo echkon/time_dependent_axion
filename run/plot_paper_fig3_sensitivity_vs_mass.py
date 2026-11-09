@@ -50,7 +50,6 @@ import numpy as np
 
 from source.paths import data_path, figs_path
 from source import paper_style as ps
-from source.dephasing import sigma_z_factor
 
 # Which N to DRAW. None = every per-N data file found. Set e.g.
 # [1, 5, 10, 20, 50] to thin the figure without deleting any data --
@@ -187,10 +186,7 @@ if __name__ == "__main__":
         # trajectory-resolved and trajectory-averaged QFI coincide at this
         # signal strength, so a single curve per N is plotted.
         rows = curves[N]
-        # sigma_z (energy-basis) dephasing implied by T = T2 -- the stored
-        # sigma_g neglects it, so degrade it by 1/sqrt(R) at this N.
         sig = np.array([r["sigma_g"] for r in rows], dtype=float)
-        sig = sig / np.sqrt(sigma_z_factor(N))
         m = np.array([r["m_a_ueV"] for r in rows], dtype=float)
         ax.plot(m, sig, marker=ps.n_marker(i), ls=ps.n_linestyle(i), color=colors[i],
                 label=rf"$N={N}$", mfc="none", mew=1.2, zorder=5)
