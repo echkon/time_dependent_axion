@@ -134,62 +134,6 @@ def qfi_dephased_dense(zt, s_scale, T, nsteps, N, gammaT, axis="x"):
     return sld_qfi_single_param(rho, drho)
 
 
-# =====================================================================
-# ENERGY-BASIS (sigma_z) DEPHASING SET BY T2
-# =====================================================================
-# The interrogation time is T = min(tau_DM, T2) with T2 = 100 us, so every
-# shot in this paper runs for exactly one T2. A transmon's T2 is dephasing
-# in the ENERGY basis, i.e. a sigma_z channel, which is NOT the sigma_x
-# channel studied above -- sigma_x dephasing is a separate, fiducial-axis
-# process (drive-axis/control noise). Both are present; the curves reported
-# elsewhere modelled only the sigma_x one, so they must be corrected by the
-# sigma_z factor measured here.
-#
-# With T = T2 the sigma_z rate is fixed: coherence ~ exp(-2 gamma_z t) and
-# T2 = 1/(2 gamma_z), hence gamma_z*T = T/(2 T2) = 0.5.
-#
-# In the |+->/|-> basis the probe is an ordinary GHZ state and sigma_z is a
-# BIT FLIP. With n of N qubits flipped the branch phase is 2 c_x (N - 2n)
-# with n ~ Binomial(N, q), q = [1 - exp(-2 gamma_z t)]/2, so
-#     E[(N-2n)^2] / N^2 = (1-2q)^2 + 4q(1-q)/N ,
-# i.e. the QFI ratio has the form a + b/N. That is the structural reason
-# for the fit below; a and b themselves are measured, because the static
-# argument ignores WHEN during the shot a flip occurs.
-#
-# MEASURED with qfi_dephased_dense(axis="z"), ratio of ENSEMBLE MEANS over
-# 12 field realizations, nsteps = 40, m_a = 1 ueV, gamma_z*T = 0.5:
-#     N    1       2       3       4       5       6       7
-#     R  0.737   0.913   0.608   0.575   0.551   0.532   0.517
-# least squares on N >= 3 gives R(N) = 0.4528 + 0.4731/N, residual < 0.004.
-#
-# TIME DEPENDENCE, measured the same way at N = 6:
-#     t/T   0.10    0.25    0.50    0.75    1.00
-#     R    0.9377  0.8274  0.6875  0.6128  0.5356
-# used below as a shape only, assumed N-independent.
-#
-# CAVEAT: R(N) beyond N = 7 is the fit, not a measurement; the dense
-# reference is capped near N = 9 by the 2^N cost.
-# =====================================================================
-
-_RZ_MEASURED = {1: 0.7368, 2: 0.9131, 3: 0.6076, 4: 0.5746,
-                5: 0.5507, 6: 0.5317, 7: 0.5166}
-_RZ_FIT_A, _RZ_FIT_B = 0.4528, 0.4731
-_RZ_SHAPE_X = np.array([0.0, 0.10, 0.25, 0.50, 0.75, 1.00])
-_RZ_SHAPE_F = np.array([0.0, 0.1342, 0.3717, 0.6729, 0.8338, 1.0])
-
-
-def sigma_z_factor(N, t_over_T=1.0):
-    """QFI multiplier from the energy-basis (sigma_z) dephasing implied by
-    T = T2, i.e. gamma_z*T = 0.5. Returns R in (0, 1]; the projected
-    sensitivity degrades as sigma_g -> sigma_g / sqrt(R)."""
-    N = int(N)
-    R_end = _RZ_MEASURED.get(N, _RZ_FIT_A + _RZ_FIT_B / N)
-    if t_over_T >= 1.0:
-        return R_end
-    f = float(np.interp(t_over_T, _RZ_SHAPE_X, _RZ_SHAPE_F))
-    return 1.0 - (1.0 - R_end) * f
-
-
 def optimal_N(cx2, cyz2, gammaT, N_max=20000):
     """The network size that actually minimises sigma_g under fiducial-axis
     dephasing, located directly on Eq. (deph) rather than assumed equal to
